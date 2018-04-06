@@ -1,0 +1,35 @@
+version: '3'
+services:
+  cockroach:
+    image: cockroachdb/cockroach
+    ports:
+      - "8080:8080"
+      - "26257:26257"
+    command: start --insecure
+    volumes:
+      - cockroach_data:/cockroach/cockroach-data
+  tikv:
+    image: pingcap/tikv
+    depends_on:
+     - pd
+    command: --pd=pd:2379 --data-dir=/data
+    volumes:
+      - tikv_data:/data
+  pd:
+    image: pingcap/pd
+    command: --data-dir=/data
+    volumes:
+      - pd_data:/data
+  tidb:
+    image: pingcap/tidb
+    ports:
+      - "4000:4000"
+      - "10080:10080"
+    depends_on:
+     - pd
+     - tikv
+    command: --store=tikv --path=pd:2379
+volumes:
+  cockroach_data:
+  tikv_data:
+  pd_data:
